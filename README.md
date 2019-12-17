@@ -152,106 +152,78 @@ There are a variety of API Requests in the API proxy.
 For all of them, the APIKey must be passed in the header "APIKEY".
 
 The requests follow this form:
-`GET /4mv4d-filtering-demo/PATH/IATA_CODE`
+`GET /response-shaping/PATH/CITY`
 
 ...where PATH is replaced by one of
-`iata-t1` , `iata-t2` , `iata-t3` , `iata-t1c` , `iata-t2c` , `iata-t3c` ,
-and IATA_CODE is a 3-letter code for an airport, like SEA, SJC, DEN, ATL, YYZ, and so on.
+{ `iata-t1` , `iata-t2` , `iata-t3` }
+and CITY is a name like SEATTLE or DENVER.
 
-Each request retrieves information about an Airport. The actual backing service is a public sandbox service, provided by Amadeus.
+Each request retrieves information about  Airports near a surrounding city. The actual backing service is a publicly-accessible test service, provided by Amadeus.
 
 In the PATH,
 * t1 implies no filtering
 * t2 filters based on the custom attribute on the Client (Developer App)
 * t3 filters based on the custom attribute on the API Product
-* the c suffix indicates that the flow uses the response cache
 
 ### Examples
 
-* `GET /4mv4d-filtering-demo/iata-t1/SEA`
-* `GET /4mv4d-filtering-demo/iata-t1c/SEA`
-* `GET /4mv4d-filtering-demo/iata-t2/SEA`
-* `GET /4mv4d-filtering-demo/iata-t2c/SEA`
-* `GET /4mv4d-filtering-demo/iata-t3/SEA`
-* `GET /4mv4d-filtering-demo/iata-t3c/SEA`
+* `GET /response-shaping/iata-t1/SEATTLE`
+* `GET /response-shaping/iata-t2/SEATTLE`
+* `GET /response-shaping/iata-t3/SEATTLE`
 
 
 ## Provisioning the Easy Way
 
-The easy way to prepare to run this demonstration is to use the [provision-4mv4d-field-filtering-demo.sh](./provision-4mv4d-field-filtering-demo.sh) script to provision the api proxy, api products, and developer apps necessary, and then to import the generated postman collection and invoke APIs from Postman.
+The easy way to prepare to run this demonstration is to use the [provision.js](./tools/provision.js) script to provision the api proxy, api products, and developer apps necessary. To do that:
 
-You should run the script from the directory that contains the script and the bundle sub-directory.
+```
+cd tools
+npm install
+AMADEUS_CLIENT_ID=client_id_from_amadeus
+AMADEUS_CLIENT_SECRET=secret_from_amadeus
+ORG=myorg
+ENV=test
+node ./provision.js  -v -n -o $ORG -e $ENV \
+   --amadeus_client_id=${AMADEUS_CLIENT_ID} \
+   --amadeus_client_secret=${AMADEUS_CLIENT_SECRET}
+```
 
-## The Postman Collection
+The output of that script will include lines like this:
 
-[Postman](https://www.getpostman.com/) is a tool for invoking API requests.  The script generates a "collection" for use within Postman, to make it easy to exercise the APIs.
+```
+app1_client_id=8yyAnp3QB5KbFXX0Pj2GqNzvVbrPdOV1
 
-Each of the API Requests in the generated postman collection will demonstrate one particular aspect of the demo.
+[2019-Dec-17 10:05:21] GET https://api.enterprise.apigee.com/v1/o/amer-demo46/developers/Response-Shaping-Developer@example.com/apps
+[2019-Dec-17 10:05:22] status: 200
+[2019-Dec-17 10:05:22] GET https://api.enterprise.apigee.com/v1/o/amer-demo46/developers/Response-Shaping-Developer@example.com/apps/Response-Shaping-App-2
+[2019-Dec-17 10:05:22] status: 200
+[2019-Dec-17 10:05:22] app2: Response-Shaping-App-2
+app2_client_id=uOCeDqDL7ZfKGIW068Al710PHZif9jcJ
 
-They are:
-  - verifying a valid api key, no filtering
-  - verifying a valid api key, no filtering, with response cache
-  - Rejecting an expired api key
-  - Rejecting an invalid api key
-  - verifying a valid api key, filtering based on API Product metadata,
-  - verifying a valid api key, iltering based on API Product metadata, with response cache
-  - verifying a valid api key, filtering based on App (Client) metadata,
-  - verifying a valid api key, iltering based on App (Client) metadata, with response cache
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app1_client_id
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app2_client_id
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
 
+```
 
-There are three flavors of "flow" in the API Proxy: t1, t2, t3.
+Copy-paste the lines to set the app1_client_id and app2_client_id:
+```
+app1_client_id=8yyAnp3QB5KbFXX0Pj2GqNzvVbrPdOV1
+app2_client_id=uOCeDqDL7ZfKGIW068Al710PHZif9jcJ
+```
 
-* The t1 flow does no filtering.
-* the t2 flow uses metadata on the Developer App to guide the filtering
-* The t3 flow uses API Product metadata to direct filtering
+Then, invoke the proxy to see unfiltered results:
+```
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
+```
 
-There are two API Products, each of which has different filtering metadata, and two Developer Apps, each of which has different filtering metadata.  So you've got a number of different combinations to exercise.
+results shaped based on client id:
+```
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
+```
 
-You wouldn't use ALL of these in a real system. The idea is just to show some of what is possible.
-
-
-## Manually Preparing and Provisioning
-
-Ok, you don't like the easy way. If you want to manually provision this demo, here's how:
-
-1. Import the proxy bundle into any Apigee Edge organization
-
-2. create two API Products, both of which have the api proxy imported above.
-   Both should have "custom attributes", like this:
-
-   | API Product     | attr name     |  value                |
-   |-----------------|---------------|-----------------------|
-   | Filter-Product1 | filter_fields | city.name, city.state, airports.code, airports.name |
-   |                 | filter_action | include               |
-   | Filter-Product2 | filter_fields | city, airports.country, airports.city_code |
-   |                 | filter_action | exclude               |
-   |
-
-   If you wanted to use GraphQL syntax, you could do this:
-
-   | API Product     | attr name     |  value                     |
-   |-----------------|---------------|----------------------------|
-   | Filter-Product1 | filter_fields | { city {name, state}, airports {code, name} |
-   |                 | filter_action | include                    |
-   | Filter-Product2 | filter_fields | { city, airports { country, city_code } |
-   |                 | filter_action | exclude                    |
-   |
-
-3. create a Developer within Apigee Edge
-
-4. create two Developer Apps within Apigee Edge, associated to the new developer, each with authorization
-   to one of the above API Products.
-
-   Also, each should have "custom attributes". Configure them like so:
-
-   | Developer App  | API Product     | attr name     |  value                  |
-   |----------------|-----------------|---------------|-------------------------|
-   | Filter-App1    | Filter-Product1 | filter_fields | city.name, city.state, airports.location, airports.code, airports.aircraft_movements |
-   |                |                 | filter_action | include                 |
-   | Filter-App2    | Filter-Product2 | filter_fields | city, airports.location |
-   |                |                 | filter_action | exclude                 |
-   |
-
-   And here again, you could use the GraphQL syntax as above.
-
-5. View and copy the client_id (aka API Key) for each of the above developer apps.  You may want to create other apps that have no access to the api proxy in question, to demonstrate key rejection.
+results shaped based on app product:
+```
+curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
+```
