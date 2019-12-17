@@ -1,4 +1,4 @@
-# Response Shaping = Including or excluding fields from responses
+# Response Shaping: Including or excluding fields from responses
 
 This is an example proxy that illustrates how to use Apigee to shape
 data from jSON responses, dynamically based on the API Product or the Developer App.
