@@ -25,6 +25,8 @@ This example is not an official Google product, nor is it part of an official Go
 
 ## Screencast Explanation
 
+Click [here](https://youtu.be/BfL-bxRtjug "Response Shaping Demonstration").
+
 [![Screenshot of demo
 screencast](img/Response_Shaping_in_Apigee_Edge.png)](https://youtu.be/BfL-bxRtjug "Response Shaping Demonstration")
 
