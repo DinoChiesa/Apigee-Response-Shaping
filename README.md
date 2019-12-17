@@ -1,7 +1,7 @@
 # Response Shaping: Including or excluding fields from responses
 
 This is an example proxy that illustrates how to use Apigee to shape
-data from jSON responses, dynamically based on the API Product or the Developer App.
+data from JSON responses, dynamically based on the API Product or the Developer App.
 
 How it works: the Apigee Proxy retrieves a JSON response from the upstream system; that
 response includes a set of fields or properties. The proxy gets a list of field
@@ -13,10 +13,20 @@ This is a handy pattern for building adaptable facades for APIs.
 It also supports the idea of allowing developers of apps to specify the fields
 they want to include or exclude in responses to their apps.
 
+## License
+
+This example and all its code and configuration
+is Copyright (c) 2017-2019 Google LLC, and is released under the
+Apache Source License v2.0. For information see the [LICENSE](LICENSE) file.
+
+## Disclaimer
+
+This example is not an official Google product, nor is it part of an official Google product.
+
 ## Screencast Explanation
 
 [![Screenshot of demo
-screencast](img/Response_Shaping_in_Apigee_Edge.png)](https://youtu.be/KEiAstOQOiY "Response Shaping Demonstration")
+screencast](img/Response_Shaping_in_Apigee_Edge.png)](https://youtu.be/BfL-bxRtjug "Response Shaping Demonstration")
 
 ## Let's talk about Service Facades
 
@@ -158,7 +168,7 @@ The requests follow this form:
 { `iata-t1` , `iata-t2` , `iata-t3` }
 and CITY is a name like SEATTLE or DENVER.
 
-Each request retrieves information about  Airports near a surrounding city. The actual backing service is a publicly-accessible test service, provided by Amadeus.
+Each request retrieves information about  Airports near a surrounding city. The actual backing service is a publicly-accessible [test service, provided by Amadeus](https://developers.amadeus.com/self-service/category/air/api-doc/airport-and-city-search/api-reference).
 
 In the PATH,
 * t1 implies no filtering
@@ -174,13 +184,24 @@ In the PATH,
 
 ## Provisioning the Easy Way
 
-The easy way to prepare to run this demonstration is to use the [provision.js](./tools/provision.js) script to provision the api proxy, api products, and developer apps necessary. To do that:
+
+The easy way to prepare to run this demonstration is to use the
+[provision.js](./tools/provision.js) script to provision the api proxy, api
+products, and developer apps necessary.
+
+But before you do that, you need credentials from Amadeus for their test
+APIs. To get them, visit [the Amadeus developer
+portal](https://developers.amadeus.com/self-service),
+and click "REGISTER" in the upper right hand corner of the screen. Confirm your
+account, register an app, and get the API Key and Secret.
+
+Then, provision Apigee:
 
 ```
 cd tools
 npm install
-AMADEUS_CLIENT_ID=client_id_from_amadeus
-AMADEUS_CLIENT_SECRET=secret_from_amadeus
+AMADEUS_CLIENT_ID=apikey_from_amadeus
+AMADEUS_CLIENT_SECRET=api_secret_from_amadeus
 ORG=myorg
 ENV=test
 node ./provision.js  -v -n -o $ORG -e $ENV \
@@ -192,19 +213,12 @@ The output of that script will include lines like this:
 
 ```
 app1_client_id=8yyAnp3QB5KbFXX0Pj2GqNzvVbrPdOV1
-
-[2019-Dec-17 10:05:21] GET https://api.enterprise.apigee.com/v1/o/amer-demo46/developers/Response-Shaping-Developer@example.com/apps
-[2019-Dec-17 10:05:22] status: 200
-[2019-Dec-17 10:05:22] GET https://api.enterprise.apigee.com/v1/o/amer-demo46/developers/Response-Shaping-Developer@example.com/apps/Response-Shaping-App-2
-[2019-Dec-17 10:05:22] status: 200
-[2019-Dec-17 10:05:22] app2: Response-Shaping-App-2
 app2_client_id=uOCeDqDL7ZfKGIW068Al710PHZif9jcJ
 
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app1_client_id
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app2_client_id
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
-
 ```
 
 Copy-paste the lines to set the app1_client_id and app2_client_id:
@@ -213,7 +227,7 @@ app1_client_id=8yyAnp3QB5KbFXX0Pj2GqNzvVbrPdOV1
 app2_client_id=uOCeDqDL7ZfKGIW068Al710PHZif9jcJ
 ```
 
-Then, invoke the proxy to see unfiltered results:
+Then, Start a trace session in Apigee, and invoke the proxy to see unfiltered results:
 ```
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
 ```
@@ -223,7 +237,10 @@ results shaped based on client id:
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
 ```
 
-results shaped based on app product:
+and results shaped based on app product:
 ```
 curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
 ```
+
+View the trace session to examine the various effects of the policies.
+
