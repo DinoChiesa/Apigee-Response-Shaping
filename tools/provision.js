@@ -23,7 +23,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2019-December-17 10:01:44>
+// last saved: <2019-December-17 13:58:25>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -151,7 +151,7 @@ apigeeEdge.connect(common.optToOptions(opt))
         .then( _ =>
                org.proxies.get( delOptions.proxy )
                .then( proxy => {
-                 console.log('GET proxy : ' + JSON.stringify(proxy));
+                 //console.log('GET proxy : ' + JSON.stringify(proxy));
                  return org.proxies.getDeployments( delOptions.proxy )
                .then( deployments =>
                    org.proxies.undeploy({
@@ -166,10 +166,6 @@ apigeeEdge.connect(common.optToOptions(opt))
     }
 
     let options = {
-          // caches: {
-          //   getOptions: { environment : opt.options.env },
-          //   creationOptions: () => ({ cacheName : constants.discriminators.cache, environment : opt.options.env })
-          // },
           products: {
             creationOptions: () => ({
               productName  : constants.discriminators.product,
@@ -234,19 +230,14 @@ apigeeEdge.connect(common.optToOptions(opt))
       .then( _ => conditionallyCreateEntity('product'))
       .then( _ => conditionallyCreateEntity('developer'))
       .then( _ => conditionallyCreateEntity('developerapp', 1))
-      .then( result => {
-        common.logWrite(sprintf('app1: %s', result.name));
-        console.log(sprintf('app1_client_id=%s', result.credentials[0].consumerKey));
-        //console.log(sprintf('app1_client_secret=%s', result.credentials[0].consumerSecret));
-        console.log();
-      })
-      .then( _ => conditionallyCreateEntity('developerapp', 2))
-      .then( result => {
-        common.logWrite(sprintf('app2: %s', result.name));
-        console.log(sprintf('app2_client_id=%s', result.credentials[0].consumerKey));
-        //console.log(sprintf('app2_client_secret=%s', result.credentials[0].consumerSecret));
-        console.log();
-      })
+      .then( app1 =>
+             conditionallyCreateEntity('developerapp', 2)
+             .then( app2 => {
+               console.log();
+               console.log(sprintf('app1_client_id=%s', app1.credentials[0].consumerKey));
+               console.log(sprintf('app2_client_id=%s', app2.credentials[0].consumerKey));
+               console.log();
+             }))
       .then( _ => {
         console.log('curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id');
         console.log('curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app1_client_id');
