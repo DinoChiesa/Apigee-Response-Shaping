@@ -32,19 +32,40 @@ screencast](img/Response_Shaping_in_Apigee_Edge.png)](https://youtu.be/BfL-bxRtj
 
 ## Let's talk about Service Facades
 
-We sometimes speak of the concept of a "Service Facade" - this means that the Apigee Edge proxy that you configure, modifies the response from the backend in some way, so that each app sending requests through Edge might see a _different_, **modified** response. This could mean different verb + resource pairs, different formats (transforming XML to JSON), or different payloads. It could also mean "server side mashups" where the API exposed from Edge calls multiple backend systems.
+We sometimes speak of the concept of a "Service Facade" - this means that the
+Apigee Edge proxy that you configure, modifies the response from the backend in
+some way, so that each app sending requests through Edge might see a
+_different_, **modified** response. This could mean different verb + resource
+pairs, different formats (transforming XML to JSON), or different payloads. It
+could also mean "server side mashups" where the API exposed from Edge calls
+multiple backend systems.
 
 ## OK, What is Response Shaping?
 
-Within the realm of Service Facade, sometimes you just want to change the response payload. Specifically the backend may return a very large payload, and you'd like to winnow it down to the minimum required for the App, or for the API Product you're exposing.
+Within the realm of Service Facade, sometimes you just want to change the
+response payload. Specifically the backend may return a very large payload, and
+you'd like to winnow it down to the minimum required for the App, or for the API
+Product you're exposing.
 
-There's an interesting alternative to REST called [GraphQL](http://graphql.org/), which does some of this. But GraphQL changes the basic metaphor of the API.  As a simpler alternative, one might look at the [StackExchange API](https://api.stackexchange.com/docs) and the concept of [custom filters](https://api.stackexchange.com/docs/filters).
+There's an interesting alternative to REST called
+[GraphQL](http://graphql.org/), which does some of this. But GraphQL changes the
+basic metaphor of the API.  As a simpler alternative, one might look at the
+[StackExchange API](https://api.stackexchange.com/docs) and the concept of
+[custom filters](https://api.stackexchange.com/docs/filters).
 
-Wouldn't it be nice to be able to filter data like that for any API?  Maybe it's a healthcare scenario and you want to eliminate some information for privacy purposes. Maybe it's a retail scenario and you want to eliminate internal part numbers or inventory-on-hand information. Maybe it's just because the client is a mobile app and you want to economize on the payload size.
+Wouldn't it be nice to be able to filter data like that for any API?  Maybe it's
+a healthcare scenario and you want to eliminate some information for privacy
+purposes. Maybe it's a retail scenario and you want to eliminate internal part
+numbers or inventory-on-hand information. Maybe it's just because the client is
+a mobile app and you want to economize on the payload size.
 
-We can call the general approach "Response Shaping" or "Field Filtering", and you can do it within Apigee. Very easily! This code repo provides an example that you can use, and extend or apply to your own scenario.
+We can call the general approach "Response Shaping" or "Field Filtering", and
+you can do it within Apigee. Very easily! This code repo provides an example
+that you can use, and extend or apply to your own scenario.
 
-The logic for filtering fields (include or exclude) from a JSON hash is provided in a JavaScript callout - a bit of custom JavaScript that runs within an Apigee policy.
+The logic for filtering fields (include or exclude) from a JSON hash is provided
+in a JavaScript callout - a bit of custom JavaScript that runs within an Apigee
+policy.
 
 There is one interesting method:
 
@@ -83,7 +104,7 @@ With action = 'include' and the fields array like this:
 }
 ```
 
-### Example 1a: GraphQL expression
+### Example 1a: a GraphQL expression
 
 The same result can be achieved using a GraphQL expression. The equivalent to
 the above example is:
@@ -186,7 +207,6 @@ In the PATH,
 
 ## Provisioning the Easy Way
 
-
 The easy way to prepare to run this demonstration is to use the
 [provision.js](./tools/provision.js) script to provision the api proxy, api
 products, and developer apps necessary.
@@ -229,20 +249,21 @@ app1_client_id=8yyAnp3QB5KbFXX0Pj2GqNzvVbrPdOV1
 app2_client_id=uOCeDqDL7ZfKGIW068Al710PHZif9jcJ
 ```
 
-Then, Start a trace session in Apigee, and invoke the proxy to see unfiltered results:
-```
-curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
-```
+Then, Start a trace session in Apigee, and send a few requests through.
 
-results shaped based on client id:
-```
-curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
-```
+1. invoke the proxy to see unfiltered results:
+   ```
+   curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t1/SEATTLE" -H apikey:$app1_client_id
+   ```
 
-and results shaped based on app product:
-```
-curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
-```
+2. results shaped based on client id (developer app):
+   ```
+   curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t2/SEATTLE" -H apikey:$app1_client_id
+   ```
+
+3. results shaped based on app product:
+   ```
+   curl -i -X GET "https://$ORG-$ENV.apigee.net/response-shaping/iata-t3/SEATTLE" -H apikey:$app1_client_id
+   ```
 
 View the trace session to examine the various effects of the policies.
-
