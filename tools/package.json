@@ -9,9 +9,9 @@
   "author": "Dino Chiesa <dchiesa@google.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "apigee-edge-js": "^0.4.15",
-    "sprintf-js": "^1.1.1",
-    "node-getopt": "^0.3.2"
+    "apigee-edge-js": "^0.4.19",
+    "node-getopt": "^0.3.2",
+    "sprintf-js": "^1.1.2"
   },
   "engines": {
     "node": ">6.2.0"
