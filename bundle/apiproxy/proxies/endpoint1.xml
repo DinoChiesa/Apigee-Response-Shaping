@@ -5,23 +5,12 @@
     <VirtualHost>secure</VirtualHost>
   </HTTPProxyConnection>
 
-  <PreFlow name="PreFlow">
-    <Request>
-      <Step>
-        <!-- filter out invalid requests -->
-        <Name>RF-BadRequest</Name>
-        <Condition>(request.header.accept = null) or (request.header.accept =| "application/xml") or (request.header.accept =| "text/xml") or (request.verb != "GET")</Condition>
-      </Step>
-    </Request>
-    <Response/>
-  </PreFlow>
-
-  <PostFlow name="PostFlow">
-    <Request/>
-    <Response>
-      <Step><Name>AM-CleanResponseHeaders</Name></Step>
-    </Response>
-  </PostFlow>
+  <DefaultFaultRule>
+    <AlwaysEnforce>true</AlwaysEnforce>
+    <Step>
+      <Name>AM-Inject-Proxy-Revision-Header</Name>
+    </Step>
+  </DefaultFaultRule>
 
   <FaultRules>
     <FaultRule name="invalid-key">
@@ -47,52 +36,90 @@
 
   </FaultRules>
 
+  <PreFlow name="PreFlow">
+    <Request>
+      <Step>
+        <Name>RF-BadRequest</Name>
+        <Condition>(request.header.accept = null) or (request.header.accept =| "application/xml") or (request.header.accept =| "text/xml") or (request.verb != "GET")</Condition>
+      </Step>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-Clean-Request-Headers-From-Response</Name>
+      </Step>
+    </Response>
+  </PreFlow>
+
+  <PostFlow name="PostFlow">
+    <Request/>
+    <Response>
+
+      <Step>
+        <Name>AM-Inject-Proxy-Revision-Header</Name>
+      </Step>
+    </Response>
+  </PostFlow>
 
   <Flows>
-    <!-- all of the following get IATA info -->
-
-    <Flow name='passthrough'>
+    <Flow name="passthrough">
       <Request>
-        <Step><Name>VerifyAPIKey-1</Name></Step>
-        <Step><Name>EV-Keyword</Name></Step>
+        <Step>
+          <Name>VerifyAPIKey-1</Name>
+        </Step>
+        <Step>
+          <Name>EV-Keyword</Name>
+        </Step>
       </Request>
 
       <Response>
-        <!-- no filtering done here -->
-
+          <!-- no filtering done here -->
       </Response>
       <Condition>(proxy.pathsuffix MatchesPath "/iata-t1/*") and (request.verb = "GET")</Condition>
     </Flow>
 
-    <Flow name='shape response based on developer app'>
+    <Flow name="shape response based on developer app">
       <Request>
-        <Step><Name>VerifyAPIKey-1</Name></Step>
-        <Step><Name>EV-Keyword</Name></Step>
+        <Step>
+          <Name>VerifyAPIKey-1</Name>
+        </Step>
+        <Step>
+          <Name>EV-Keyword</Name>
+        </Step>
       </Request>
 
       <Response>
-        <Step><Name>JS-ApplyFieldFilter-Client</Name></Step>
+        <Step>
+          <Name>JS-ApplyFieldFilter-Client</Name>
+        </Step>
       </Response>
 
       <Condition>(proxy.pathsuffix MatchesPath "/iata-t2/*") and (request.verb = "GET")</Condition>
     </Flow>
 
-    <Flow name='shape response based on API Product'>
+    <Flow name="shape response based on API Product">
       <Request>
-        <Step><Name>VerifyAPIKey-1</Name></Step>
-        <Step><Name>EV-Keyword</Name></Step>
+        <Step>
+          <Name>VerifyAPIKey-1</Name>
+        </Step>
+        <Step>
+          <Name>EV-Keyword</Name>
+        </Step>
       </Request>
 
       <Response>
-        <Step><Name>JS-ApplyFieldFilter-Product</Name></Step>
+        <Step>
+          <Name>JS-ApplyFieldFilter-Product</Name>
+        </Step>
       </Response>
 
       <Condition>(proxy.pathsuffix MatchesPath "/iata-t3/*") and (request.verb = "GET")</Condition>
     </Flow>
 
-    <Flow name='unknown request'>
+    <Flow name="unknown request">
       <Request>
-        <Step><Name>RF-UnknownRequest</Name></Step>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
       </Request>
       <Response/>
     </Flow>

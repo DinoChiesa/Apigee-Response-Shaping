@@ -2,10 +2,10 @@
 
 // provision.js
 // ------------------------------------------------------------------
-// provision an Apigee Edge API Product, Developer, App, and Cache
-// for the OAuthV2 PKCE Example.
+// provision an Apigee API Product, Developer, App, and Cache
+// for the field filtering example.
 //
-// Copyright 2017-2019 Google LLC.
+// Copyright 2017-2022 Google LLC.
 //
 
 /* jshint esversion: 9, strict:implied, node:true */
@@ -23,27 +23,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2019-December-17 13:58:25>
+// last saved: <2022-June-06 15:15:00>
 
-const edgejs     = require('apigee-edge-js'),
-      common     = edgejs.utility,
-      apigeeEdge = edgejs.edge,
+const apigeejs   = require('apigee-edge-js'),
+      common     = apigeejs.utility,
+      apigee     = apigeejs.apigee,
       util       = require('util'),
       path       = require('path'),
       sprintf    = require('sprintf-js').sprintf,
       Getopt     = require('node-getopt'),
-      version    = '20191210-2022',
+      version    = '20220606-1513',
       proxyDir   = path.resolve(__dirname, '../bundle'),
       defaults   = { secretsmap : 'secrets'  },
       getopt     = new Getopt(common.commonOptions.concat([
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously provisioned by this script.'],
-        ['', 'secretsmap=ARG', 'optional. name of the KVM in Edge for keys. Will be created if nec. Default: ' + defaults.secretsmap],
+        ['', 'secretsmap=ARG', 'optional. name of the KVM in Apigee for keys. Will be created if nec. Default: ' + defaults.secretsmap],
         ['', 'amadeus_client_id=ARG', 'required. client_id for Amadeus test APIs'],
         ['', 'amadeus_client_secret=ARG', 'required. client_secret for Amadeus test APIs'],
         ['e' , 'env=ARG', 'required. the Apigee environment to provision for this example. ']
       ])).bindHelp();
 
 // ========================================================
+
+
+process.on('unhandledRejection',
+            r => console.log('\n*** unhandled promise rejection: ' + util.format(r)));
 
 function insureOneMap(org, r, mapname, encrypted) {
   if (r.indexOf(mapname) == -1) {
@@ -54,6 +58,8 @@ function insureOneMap(org, r, mapname, encrypted) {
 }
 
 function storeCreds(org) {
+  // as of 20220606-1514
+  // this will not work in Apigee X !
   return Promise.resolve({})
     .then( _ => org.kvms.put({
         environment: opt.options.env,
@@ -76,8 +82,8 @@ function importAndDeploy(org) {
 }
 
 console.log(
-  'Apigee Edge Response Shaping Example Provisioning tool, version: ' + version + '\n' +
-    'Node.js ' + process.version + '\n');
+  `Apigee Response Shaping Example Provisioning tool, version: ${version}\n` +
+    `Node.js ${process.version}\n`);
 
 common.logWrite('start');
 let opt = getopt.parse(process.argv.slice(2));
@@ -131,7 +137,7 @@ const constants = {
         ]
       };
 
-apigeeEdge.connect(common.optToOptions(opt))
+apigee.connect(common.optToOptions(opt))
   .then( org => {
     common.logWrite('connected');
     if (opt.options.reset) {

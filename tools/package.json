@@ -1,6 +1,6 @@
 {
   "name": "field-filtering-example-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "tools for the field filtering Example",
   "main": "provision.js",
   "scripts": {
@@ -9,11 +9,12 @@
   "author": "Dino Chiesa <dchiesa@google.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "apigee-edge-js": "^0.4.19",
+    "apigee-edge-js": "^0.4.33",
     "node-getopt": "^0.3.2",
     "sprintf-js": "^1.1.2"
   },
   "engines": {
-    "node": ">6.2.0"
+    "node": ">= 12.22.0",
+    "npm": ">= 8.3.0"
   }
 }
